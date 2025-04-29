@@ -52,22 +52,40 @@ def valider_utilisateur(id_utilisateur):
     data = request.get_json()
     statut = data.get('statut')
 
-    if statut not in ['accepté', 'refusé']:
-        return jsonify({'message': 'Statut invalide. Utilisez "accepté" ou "refusé".'}), 400
+    print(f"Received statut: '{statut}'")  # Debug: Log the received statut value
+
+    # Autoriser 'en attente', 'accepté', et 'refusé'
+    if statut not in ['En attente', 'Accepté', 'Refusé']:
+        print(f"Invalid statut: '{statut}'")  # Debug: Log invalid statut
+        return jsonify({'message': 'Statut invalide. Utilisez "En attente", "Accepté" ou "Refusé".'}), 400
 
     utilisateur = Utilisateur.query.get(id_utilisateur)
 
     if not utilisateur:
+        print(f"Utilisateur non trouvé: ID {id_utilisateur}")  # Debug: Log missing user
         return jsonify({'message': 'Utilisateur non trouvé.'}), 404
 
-    utilisateur.statut_utilisateur = statut
-    db.session.commit()
-
-    # Envoyer un email à l'utilisateur
-    envoyer_email_utilisateur(utilisateur)
-
-    return jsonify({'message': f'Utilisateur {statut} avec succès.'})
-
+    if statut == 'Refusé':
+        print(f"Deleting utilisateur: ID {id_utilisateur}")  # Debug: Log deletion attempt
+        try:
+            db.session.delete(utilisateur)
+            db.session.commit()
+            print(f"Utilisateur supprimé: ID {id_utilisateur}")  # Debug: Log successful deletion
+            # Envoyer un email à l'utilisateur
+            envoyer_email_utilisateur(utilisateur, statut)
+            return jsonify({'message': 'Utilisateur refusé et supprimé avec succès.'})
+        except Exception as e:
+            print(f"Error deleting utilisateur: {str(e)}")  # Debug: Log deletion error
+            db.session.rollback()
+            return jsonify({'message': 'Erreur lors de la suppression de l’utilisateur.'}), 500
+    else:
+        print(f"Updating statut to '{statut}' for utilisateur: ID {id_utilisateur}")  # Debug: Log status update
+        utilisateur.statut_utilisateur = statut
+        db.session.commit()
+        # Envoyer un email à l'utilisateur
+        envoyer_email_utilisateur(utilisateur, statut)
+        return jsonify({'message': f'Utilisateur mis à jour avec le statut "{statut}" avec succès.'})
+    
 # ➡️ Route de login
 @utilisateur_bp.route('/login', methods=['POST'])
 def login_utilisateur():
@@ -79,7 +97,7 @@ def login_utilisateur():
 
     if utilisateur and check_password_hash(utilisateur.mot_de_passe_utilisateur, mot_de_passe):
         if utilisateur.statut_utilisateur != 'accepté':
-            return jsonify({'message': 'Votre inscription n\'a pas été acceptée. Veuillez contacter l\'administrateur.'}), 403
+            return jsonify({'message': 'Votre inscription n\'a pas été acceptée. Veuillez attender son validation par l\'administrateur.'}), 403
         
         # Stocker les informations dans la session
         session['utilisateur_id'] = utilisateur.id_utilisateur
@@ -104,7 +122,6 @@ def logout_utilisateur():
 
     return jsonify({'message': 'Déconnexion réussie. La session a été terminée.'}), 200
 
-
 # ➡️ Fonction pour envoyer un email à l'administrateur
 def envoyer_email_admin(utilisateur):
     admin_email = 'heritianajulien45@gmail.com'
@@ -125,11 +142,11 @@ Merci de valider ou refuser cette inscription via l'interface d'administration.
     mail.send(msg)
 
 # ➡️ Fonction pour envoyer un email à l'utilisateur
-def envoyer_email_utilisateur(utilisateur):
+def envoyer_email_utilisateur(utilisateur, statut):
     msg = Message('Résultat de votre inscription',
                   recipients=[utilisateur.email_utilisateur])
 
-    if utilisateur.statut_utilisateur == 'accepté':
+    if statut == 'accepté':
         msg.body = f"""\
 Bonjour {utilisateur.prenom_utilisateur},
 
