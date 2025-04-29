@@ -4,7 +4,7 @@ from models.utilisateur_model import db, Utilisateur
 from flask_mail import Message
 from extensions import mail
 
-utilisateur_bp = Blueprint('utilisateur', __name__, url_prefix='/utilisateur')
+utilisateur_bp = Blueprint('utilisateur', __name__, url_prefix='/api/utilisateur')
 
 # ➡️ Récupérer tous les utilisateurs
 @utilisateur_bp.route('/', methods=['GET'])

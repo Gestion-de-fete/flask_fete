@@ -4,7 +4,12 @@ from models._init_ import db
 from routes.__init__ import create_routes
 from extensions import mail
 
+from flask_cors import CORS
+
 app = Flask(__name__)
+CORS(app)  # Autorise toutes les origines, ou spécifie une liste d'origines
+
+
 
 # Charger la config principale
 app.config.from_object(Config)
