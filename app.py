@@ -7,13 +7,12 @@ from extensions import mail
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)  # Autorise toutes les origines, ou spécifie une liste d'origines
-
-
+CORS(app, supports_credentials=True, origins=["http://localhost:5173"],
+     allow_headers=["Content-Type"],
+     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
 
 # Charger la config principale
 app.config.from_object(Config)
-
 
 # Initialiser extensions
 db.init_app(app)

@@ -1,17 +1,3 @@
-# import os
-
-# class Config:
-#     SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:admin@localhost:5432/fete'
-#     SQLALCHEMY_TRACK_MODIFICATIONS = False
-#     SECRET_KEY = 'z7j!5e^g2@9$pl%f@r3q&bxcv8*k(4n#dh@1$9u6s7h+w2ljvn'
-
-#     MAIL_SERVER = 'smtp.gmail.com'
-#     MAIL_PORT = 587
-#     MAIL_USE_TLS = True
-#     MAIL_USE_SSL = False
-#     MAIL_USERNAME = 'heritianajulien45@gmail.com'
-#     MAIL_PASSWORD = 'bysg pzyd umap fvog'
-#     MAIL_DEFAULT_SENDER = 'heritianajulien45@gmail.com'
 import os
 
 class Config:
