@@ -1,5 +1,5 @@
 from .utilisateurs._init_ import utilisateur_bp
-from .client_route import client_bp
+from .client.___init___ import client_bp
 from .entree_sortie_route import entreesortie_bp
 
 def create_routes(app):

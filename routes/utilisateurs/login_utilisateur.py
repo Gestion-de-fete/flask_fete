@@ -10,7 +10,7 @@ def login_utilisateur():
     utilisateur = Utilisateur.query.filter_by(email_utilisateur=email).first()
 
     if utilisateur and check_password_hash(utilisateur.mot_de_passe_utilisateur, mot_de_passe):
-        if utilisateur.statut_utilisateur != 'accepté':
+        if utilisateur.statut_utilisateur != 'Accepté':
             return jsonify({'message': 'Votre inscription n\'a pas été acceptée.'}), 403
         
         session['utilisateur_id'] = utilisateur.id_utilisateur
