@@ -6,6 +6,4 @@ class EntreeSortie(db.Model):
     cin_client = db.Column(db.String, db.ForeignKey('client.cin_client'), nullable=False)
     etat = db.Column(db.String(10), nullable=False)  # 'entree' ou 'sortie'
     date_heure = db.Column(db.DateTime, default=datetime.utcnow)
-    # ici, il manque id_utilisateur si tu l'utilises dans tes requêtes
-    id_utilisateur = db.Column(db.Integer, db.ForeignKey('utilisateur.id'), nullable=False)
 
