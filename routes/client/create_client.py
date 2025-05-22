@@ -42,11 +42,10 @@ def create_client():
         qr_image = qr.make_image(
             image_factory=qrcode.image.styledpil.StyledPilImage,
             module_drawer=RoundedModuleDrawer(),
-            color_mask=SolidFillColorMask(back_color=(255, 255, 255), front_color=(0, 0, 255)),
+            color_mask=SolidFillColorMask(back_color=(255, 255, 255), front_color=(0, 0, 0)),
             embeded_image_path=None
         )
 
-        # Traitement de la photo du client
         client_photo = Image.open(BytesIO(photo))
         client_photo = client_photo.resize((100, 100), Image.LANCZOS)
         qr_width, qr_height = qr_image.size
