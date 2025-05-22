@@ -1,22 +1,24 @@
 from flask import request, jsonify
-from models.client_model import db, Client
-import qrcode
+from datetime import datetime
 from io import BytesIO
-import base64
-from flask_mail import Message
-from extensions import mail
 import traceback
+import qrcode
 from PIL import Image
 import qrcode.image.styledpil
 from qrcode.image.styles.moduledrawers import RoundedModuleDrawer
 from qrcode.image.styles.colormasks import SolidFillColorMask
+from flask_mail import Message
+
+from models.client_model import db, Client
+from models.entree_sortie_model import EntreeSortie
+from extensions import mail
 
 def create_client():
     try:
         data = request.form
         photo = request.files['photo_client'].read()
 
-        # Construction du texte du QR code avec toutes les données
+        # Construction du texte du QR code
         qr_text = (
             f"CIN: {data['cin_client']}\n"
             f"Nom: {data['nom_client']}\n"
@@ -27,7 +29,7 @@ def create_client():
             f"PAF: {data['paf_client']}"
         )
 
-        # Génération du QR code avec design amélioré
+        # Génération du QR code stylisé
         qr = qrcode.QRCode(
             version=1,
             error_correction=qrcode.constants.ERROR_CORRECT_H,
@@ -37,7 +39,6 @@ def create_client():
         qr.add_data(qr_text)
         qr.make(fit=True)
 
-        # Style personnalisé pour le QR code
         qr_image = qr.make_image(
             image_factory=qrcode.image.styledpil.StyledPilImage,
             module_drawer=RoundedModuleDrawer(),
@@ -45,25 +46,19 @@ def create_client():
             embeded_image_path=None
         )
 
-        # Ouvrir la photo du client à partir des bytes
+        # Traitement de la photo du client
         client_photo = Image.open(BytesIO(photo))
-        photo_size = (100, 100)  # Taille de la photo au centre
-        client_photo = client_photo.resize(photo_size, Image.LANCZOS)
-
-        # Calculer la position pour centrer la photo
+        client_photo = client_photo.resize((100, 100), Image.LANCZOS)
         qr_width, qr_height = qr_image.size
-        photo_width, photo_height = photo_size
-        position = ((qr_width - photo_width) // 2, (qr_height - photo_height) // 2)
-
-        # Coller la photo au centre du QR code
+        position = ((qr_width - 100) // 2, (qr_height - 100) // 2)
         qr_image.paste(client_photo, position)
 
-        # Sauvegarder le QR code avec la photo dans un buffer
+        # Sauvegarde en mémoire
         buffer = BytesIO()
         qr_image.save(buffer, format='PNG')
         qr_code_bytes = buffer.getvalue()
 
-        # Sauvegarde dans la base de données
+        # Création du client
         new_client = Client(
             cin_client=data['cin_client'],
             id_utilisateur=int(data['id_utilisateur']),
@@ -76,14 +71,22 @@ def create_client():
             paf_client=int(data['paf_client']),
             codeqr_client=qr_text
         )
-
         db.session.add(new_client)
         db.session.commit()
 
-        # Envoi de l'email avec QR code
+        # Insertion dans la table EntreeSortie avec état = 'sortie'
+        sortie = EntreeSortie(
+            cin_client=new_client.cin_client,
+            etat='sortie',
+            date_heure=datetime.utcnow()
+        )
+        db.session.add(sortie)
+        db.session.commit()
+
+        # Envoi de l'e-mail avec QR code
         envoyer_email_client(data['email_client'], qr_code_bytes)
 
-        return jsonify({'message': 'Client ajouté avec succès et QR code envoyé par email'}), 201
+        return jsonify({'message': 'Client ajouté avec succès, QR code envoyé par email, et sortie enregistrée.'}), 201
 
     except Exception as e:
         traceback.print_exc()
@@ -91,7 +94,11 @@ def create_client():
         return jsonify({'error': str(e)}), 500
 
 def envoyer_email_client(email, qr_code_bytes):
-    msg = Message("Votre Code QR d'inscription", sender="ton.email@gmail.com", recipients=[email])
+    msg = Message(
+        subject="Votre Code QR d'inscription",
+        sender="ton.email@gmail.com",
+        recipients=[email]
+    )
     msg.body = (
         "Bonjour,\n\n"
         "Merci pour votre inscription. Vous trouverez en pièce jointe votre code QR personnalisé avec votre photo.\n"
