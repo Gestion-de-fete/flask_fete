@@ -10,6 +10,7 @@ from PIL import Image
 import qrcode.image.styledpil
 from qrcode.image.styles.moduledrawers import RoundedModuleDrawer
 from qrcode.image.styles.colormasks import SolidFillColorMask
+from datetime import datetime
 
 def update_client(cin_client):
     try:
@@ -35,6 +36,7 @@ def update_client(cin_client):
         client.paf_client = int(data.get('paf_client', client.paf_client))
         client.id_utilisateur = int(data.get('id_utilisateur', client.id_utilisateur))  # Clé étrangère
         client.photo_client = photo_data
+        client.date_creation = datetime.utcnow() 
 
         # Construction du texte du QR code avec les données mises à jour
         qr_text = (
@@ -64,7 +66,7 @@ def update_client(cin_client):
         qr_image = qr.make_image(
             image_factory=qrcode.image.styledpil.StyledPilImage,
             module_drawer=RoundedModuleDrawer(),
-            color_mask=SolidFillColorMask(back_color=(255, 255, 255), front_color=(0, 0, 255)),
+            color_mask=SolidFillColorMask(back_color=(255, 255, 255), front_color=(0, 0, 0)),
             embeded_image_path=None
         )
 

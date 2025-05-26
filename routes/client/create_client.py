@@ -68,7 +68,8 @@ def create_client():
             adresse_client=data['adresse_client'],
             telephone_client=data['telephone_client'],
             paf_client=int(data['paf_client']),
-            codeqr_client=qr_text
+            codeqr_client=qr_text,
+                date_creation=datetime.utcnow() 
         )
         db.session.add(new_client)
         db.session.commit()
