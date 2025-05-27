@@ -15,7 +15,8 @@ entree_sortie_bp.route('/sortie', methods=['PUT'])(update_sortie)
 entree_sortie_bp.route('/etat', methods=['GET'])(get_etat)
 entree_sortie_bp.route('/fetch', methods=['GET'])(get_entree_sortie)
 entree_sortie_bp.route('/number', methods=['GET'])(get_dashboard_data)
-entree_sortie_bp.route('/delete', methods=['DELETE'])(delete_entree_sortie)
+entree_sortie_bp.route('/delete/<int:id_entree_sortie>', methods=['DELETE'])(delete_entree_sortie)
+
 
 
 
